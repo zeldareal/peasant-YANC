@@ -11,7 +11,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-** always check install scripts before running them!** ead through `install.sh` first to see what it does.
+** always check install scripts before running them!** read through `install.sh` first to see what it does.
 <br>
 ### First Launch
 
