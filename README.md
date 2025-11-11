@@ -1,5 +1,5 @@
 
-### Not Nixvim Nvim
+### Yet Another Weird Nvim, Not Nixvim Nvim
 
 are on nixOS/using nix package manager, and want to use/are using nixvim? great!, head over to the main repo : https://github.com/zeldareal/YAWN
 <br>
