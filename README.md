@@ -1,24 +1,38 @@
-yet another weird nvim, but without nixvim...
-
-
-# installation.
-
+yet another weird nvim... with nix stripped out..
+are on nixOS/using nix package manager? great!, head over to the main repo :
+<br>
+## installation
 ```bash
 git clone https://github.com/zeldareal/peasant-YANC.git
 cd peasant-YANC
 chmod +x install.sh
 ./install.sh
 ```
-!! always check install scripts you find literally anywhere !!
 
-## first launch
+** always check install scripts before running them!** ead through `install.sh` first to see what it does.
+<br>
+### First Launch
 
-open nvim with 'nvim'
-wait for lazy.nvim to install plugins (expect errors, they're normal)
-run ':Mason' to verify LSP servers
-restart nvim
+1. Open Neovim: `nvim`
+2. Wait for lazy.nvim to install plugins (you'll see a window pop up)
+   - **Expect errors during first install - this is completely normal!**
+   - Don't panic when you see red text, just let it finish
+3. Once installation completes, quit Neovim (`:q`)
+4. Reopen Neovim: `nvim`
+5. (Optional) Run `:Mason` to verify LSP servers are installing
+6. (Optional) Run `:checkhealth` to diagnose any issues
 
-## more info?
+thats it, should work
 
-head over to the main repo, it has all the info : https://github.com/zeldareal/YAWN
+### troubleshooting
 
+If you still see errors after reopening:
+- Run `:Lazy sync` to update all plugins
+- Run `:Mason` and press `U` to update all LSP servers
+- Close and reopen Neovim one more time
+
+If noice.nvim is acting weird:
+```bash
+rm -rf ~/.local/share/nvim/lazy
+nvim  # let it reinstall everything
+```
