@@ -56,6 +56,7 @@ require("lazy").setup({
 		dependencies = {
 			"williamboman/mason.nvim",
 			"williamboman/mason-lspconfig.nvim",
+			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
 			require("mason").setup()
@@ -307,10 +308,21 @@ require("lazy").setup({
 	},
 
 	-- Trouble
-	{ "folke/trouble.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
+	{
+		"folke/trouble.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
+		config = function()
+			require("trouble").setup()
+		end,
+	},
 
 	-- Flash
-	{ "folke/flash.nvim" },
+	{
+		"folke/flash.nvim",
+		config = function()
+			require("flash").setup()
+		end,
+	},
 
 	-- Formatting
 	{
@@ -341,7 +353,6 @@ require("lazy").setup({
 				java = { "checkstyle" },
 				javascript = { "eslint" },
 				typescript = { "eslint" },
-				-- nix doesn't have great linter support in nvim-lint, nixd LSP handles it
 			}
 
 			-- Auto-lint on save and text changed
@@ -369,6 +380,7 @@ require("lazy").setup({
 	-- UI
 	{
 		"nvim-lualine/lualine.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("lualine").setup({
 				options = { theme = "auto" },
@@ -378,6 +390,7 @@ require("lazy").setup({
 
 	{
 		"akinsho/bufferline.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("bufferline").setup({
 				options = {
@@ -400,6 +413,7 @@ require("lazy").setup({
 	-- Alpha dashboard
 	{
 		"goolord/alpha-nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			local alpha = require("alpha")
 			local dashboard = require("alpha.themes.dashboard")
@@ -420,20 +434,55 @@ require("lazy").setup({
 		end,
 	},
 
-	{ "nvim-tree/nvim-web-devicons" },
+	-- Notify (must load before noice)
+	{
+		"rcarriga/nvim-notify",
+		priority = 900,
+		config = function()
+			require("notify").setup({
+				background_colour = "#000000",
+				timeout = 3000,
+			})
+			vim.notify = require("notify")
+		end,
+	},
 
-	-- Noice
+	-- Noice (fixed dependencies)
 	{
 		"folke/noice.nvim",
+		event = "VeryLazy",
+		priority = 800,
 		dependencies = {
 			"MunifTanjim/nui.nvim",
 			"rcarriga/nvim-notify",
 		},
+		config = function()
+			require("noice").setup({
+				lsp = {
+					override = {
+						["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+						["vim.lsp.util.stylize_markdown"] = true,
+						["cmp.entry.get_documentation"] = true,
+					},
+				},
+				presets = {
+					bottom_search = true,
+					command_palette = true,
+					long_message_to_split = true,
+				},
+			})
+		end,
 	},
 
-	-- Notify
-	{ "rcarriga/nvim-notify" },
-
 	-- Persistence
-	{ "folke/persistence.nvim", config = true },
+	{
+		"folke/persistence.nvim",
+		event = "BufReadPre",
+		config = function()
+			require("persistence").setup()
+		end,
+	},
+
+	-- Web devicons (standalone in case)
+	{ "nvim-tree/nvim-web-devicons" },
 })
