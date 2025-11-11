@@ -9,6 +9,7 @@ echo ""
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Detect package manager
@@ -36,13 +37,27 @@ if ! command -v nvim &> /dev/null; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Neovim found${NC}"
+# Check nvim version
+NVIM_VERSION=$(nvim --version | head -n1 | grep -oP 'v\K[0-9]+\.[0-9]+' || echo "0.0")
+echo -e "${GREEN}✓ Neovim found (version $NVIM_VERSION)${NC}"
+
+if command -v bc &> /dev/null; then
+    if (( $(echo "$NVIM_VERSION < 0.9" | bc -l) )); then
+        echo -e "${YELLOW}⚠ Warning: Neovim 0.9+ recommended for best compatibility${NC}"
+    fi
+fi
 
 # Backup existing config
 if [ -d "$HOME/.config/nvim" ]; then
     BACKUP_DIR="$HOME/.config/nvim.backup.$(date +%Y%m%d_%H%M%S)"
     echo -e "${YELLOW}Backing up existing config to $BACKUP_DIR${NC}"
     mv "$HOME/.config/nvim" "$BACKUP_DIR"
+fi
+
+# Clean up old plugin data (important for noice issues)
+if [ -d "$HOME/.local/share/nvim/lazy" ]; then
+    echo -e "${YELLOW}Cleaning old lazy.nvim plugin data...${NC}"
+    rm -rf "$HOME/.local/share/nvim/lazy"
 fi
 
 # Create config directory
@@ -88,7 +103,14 @@ install_debian_deps() {
     
     # Language servers and tools via npm/pip
     sudo npm install -g lua-language-server typescript typescript-language-server eslint
-    pip3 install --user pyright ruff stylua
+    pip3 install --user pyright ruff
+    
+    # stylua (if cargo available)
+    if command -v cargo &> /dev/null; then
+        cargo install stylua
+    else
+        echo -e "${YELLOW}Note: stylua requires Rust - install it manually if needed${NC}"
+    fi
 }
 
 install_fedora_deps() {
@@ -102,6 +124,13 @@ install_fedora_deps() {
     # Language servers and tools
     sudo npm install -g lua-language-server typescript typescript-language-server eslint
     pip3 install --user pyright ruff
+    
+    # stylua (if cargo available)
+    if command -v cargo &> /dev/null; then
+        cargo install stylua
+    else
+        echo -e "${YELLOW}Note: stylua requires Rust - install it manually if needed${NC}"
+    fi
 }
 
 case $PKG_MANAGER in
@@ -119,11 +148,27 @@ case $PKG_MANAGER in
         ;;
     *)
         echo -e "${RED}Unknown package manager. Install dependencies manually:${NC}"
-        echo "- git, gcc, make"
-        echo "- ripgrep, fd, lazygit"
-        echo "- Language servers: lua-language-server, nixd, rust-analyzer, pyright, clangd, etc."
-        echo "- Formatters: stylua, nixfmt"
-        echo "- Linters: luacheck, ruff, cppcheck, eslint"
+        echo ""
+        echo "Required:"
+        echo "  - git, gcc, make"
+        echo "  - ripgrep, fd, lazygit"
+        echo ""
+        echo "Language servers (Mason will auto-install most):"
+        echo "  - lua-language-server"
+        echo "  - rust-analyzer"
+        echo "  - pyright"
+        echo "  - clangd"
+        echo "  - typescript-language-server"
+        echo ""
+        echo "Formatters:"
+        echo "  - stylua (lua)"
+        echo "  - nixfmt (nix)"
+        echo ""
+        echo "Linters:"
+        echo "  - luacheck"
+        echo "  - ruff (python)"
+        echo "  - cppcheck"
+        echo "  - eslint"
         ;;
 esac
 
@@ -131,20 +176,30 @@ echo ""
 echo "=== Setup complete! ==="
 echo ""
 echo "Next steps:"
-echo "1. Open Neovim: nvim"
-echo "2. Lazy.nvim will auto-install plugins (wait for it to finish)"
-echo "3. Run :Mason to check LSP server status"
-echo "4. Restart Neovim"
+echo "  1. Open Neovim: nvim"
+echo "  2. Wait for lazy.nvim to auto-install plugins"
+echo "  3. Close Neovim (:q) and reopen it"
+echo "  4. Run :checkhealth to verify everything works"
 echo ""
-echo -e "${YELLOW}Note: First launch will have some errors - this is normal!${NC}"
-echo -e "${YELLOW}Everything will work after plugins finish installing.${NC}"
+echo -e "${YELLOW}Important: First launch will take a minute while plugins install.${NC}"
+echo -e "${YELLOW}You might see some errors initially - this is normal!${NC}"
+echo -e "${YELLOW}Everything will work after the initial plugin sync completes.${NC}"
 echo ""
-echo "Keybindings:"
-echo "  <Space>ff - Find files"
+echo "Useful keybindings:"
+echo "  <Space>ff - Find files (Telescope)"
 echo "  <Space>fg - Live grep"
-echo "  <Space>e  - File explorer"
+echo "  <Space>fb - Buffer list"
+echo "  <Space>e  - File explorer (Neo-tree)"
 echo "  <Space>o  - Oil (directory editor)"
 echo "  <Space>lg - Lazygit"
+echo "  <Space>h  - Harpoon menu"
+echo "  <Space>a  - Harpoon add file"
 echo "  <C-\\>    - Toggle terminal"
+echo ""
+echo "LSP keybindings (when in a file with LSP):"
+echo "  gd        - Go to definition"
+echo "  gr        - Go to references"
+echo "  K         - Hover documentation"
+echo "  <Space>ca - Code actions"
 echo ""
 echo "Happy vimming! 🚀"
